@@ -1,6 +1,9 @@
 # Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion
 Udacity Self-Driving Car Engineer Nanodegree:  Lidar and Radar Fusion with Kalman Filters in C++.
+
 The task is to track a prdestrain moving in front of our autonomous vehicle.
+
+This project can use multiple data sources originating from different sensors to estimate a more accurate object state.
 
 ## Content of this repository
 - src
@@ -34,6 +37,13 @@ The Kalman Filter algorithm will go through the following steps:
 
 Because our state vector only tracks position and velocity, we are modeling acceleration as a random noise. 
 
+```cpp
+void KalmanFilter::Predict() {
+	x_ = F_ * x_;
+	MatrixXd Ft = F_.transpose();
+	P_ = F_ * P_ * Ft + Q_;
+```
+
 ## Measurements
 
 ### Laser & Radar synthetic input (object position)
@@ -51,6 +61,40 @@ R	1.441585e+00	4.700585e-01	2.079419e+00	1477010443250000	1.149825e+00	6.010446e
 
 ### Laser Measurements
 
+- ``z``measurement vector
+- ``x``state vector
+- ``R``measurement covariance matrix
+- ``H``measurement matrix: Find the right H matrix to project from a 4D state to a 2D observation space.
+
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Laser%20Measurements.png" width = "50%" height = "50%" div align=center />
+
+```cpp
+void KalmanFilter::Update(const VectorXd &z) {
+	VectorXd z_pred = H_ * x_;
+	VectorXd y = z - z_pred;
+	MatrixXd Ht = H_.transpose();
+	MatrixXd S = H_ * P_ * Ht + R_;
+	MatrixXd Si = S.inverse();
+	MatrixXd PHt = P_ * Ht;
+	MatrixXd K = PHt * Si;
+
+	//new estimate
+	x_ = x_ + (K * y);
+	long x_size = x_.size();
+	MatrixXd I = MatrixXd::Identity(x_size, x_size);
+	P_ = (I - K * H_) * P_;
+```
+
+### Radar Measurements
 
 
-## Radar Measurements
+## Disadvantages
+
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Disadvantages.png" width = "50%" height = "50%" div align=center />
+
+It works quite well when the pedestrian is moving along the straght line.
+
+However, our linear motion model is not perfect, especially for the scenarios when the pedestrian is moving along a circular path.
+
+To solve this problem, we can predict the state by using a more complex motion model such as the circular motion.
+
