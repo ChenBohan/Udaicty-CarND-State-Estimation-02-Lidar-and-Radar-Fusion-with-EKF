@@ -6,7 +6,7 @@
 #include <vector>
 
 using namespace std;
-using namespace Eigen;
+using namespace Eigen/Dense;
 
 //Kalman Filter variables
 VectorXd x;	// object state
