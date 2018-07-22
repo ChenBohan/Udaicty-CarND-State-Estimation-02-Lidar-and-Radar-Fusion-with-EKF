@@ -5,12 +5,6 @@ The task is to track a prdestrain moving in front of our autonomous vehicle.
 
 This project can use multiple data sources originating from different sensors to estimate a more accurate object state.
 
-## Content of this repository
-- src
-  - `Eigen` A C++ template library for linear algebra: matrices, vectors, numerical solvers, and related algorithms.
-  - `kalman_filter_1d.cpp` Kalman Filter for 1D tracking problem in C++. 
-  
-
 ## Overview
 The Kalman Filter algorithm will go through the following steps:
 - First measurement.
