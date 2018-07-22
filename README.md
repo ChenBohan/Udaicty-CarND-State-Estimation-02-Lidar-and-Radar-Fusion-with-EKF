@@ -99,6 +99,14 @@ To solve this problem, we can predict the state by using a more complex motion m
 
 The radar can directly measure the object ``range``, ``bearing``, ``radial velocity``.
 
+We use the extended kalman filter in Radar Measurements for non-linear function.
+
+What we change is we simply use non-linear function f(x) to predict the state, and h(X) to compute the measurement error.
+
+So we first linearize the non-linear prediction and measurement functions, and then use the same mechanism to estimate the new state.
+
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Generalization.png" width = "50%" height = "50%" div align=center />
+
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements.png" width = "50%" height = "50%" div align=center />
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements2.png" width = "50%" height = "50%" div align=center />
@@ -109,5 +117,65 @@ Extended Kalman filter (EKF) is the nonlinear version of the Kalman filter which
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Extended%20Kalman%20Filter.png" width = "50%" height = "50%" div align=center />
 
+Calculate the Jacobian matrix
 
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Jacobian%20Matrix.png" width = "50%" height = "50%" div align=center />
 
+```cpp
+//pre-compute a set of terms to avoid repeated calculation
+float c1 = px*px+py*py;
+float c2 = sqrt(c1);
+float c3 = (c1*c2);
+
+//check division by zero
+if(fabs(c1) < 0.0001){
+	cout << "CalculateJacobian () - Error - Division by Zero" << endl;
+	return Hj;
+}
+
+//compute the Jacobian matrix
+Hj << (px/c2), (py/c2), 0, 0,
+	-(py/c1), (px/c1), 0, 0,
+	py*(vx*py - vy*px)/c3, px*(px*vy - py*vx)/c3, px/c2, py/c2;
+```
+
+## Evaluating KF Performance
+
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Evaluating%20KF%20Performance.png" width = "50%" height = "50%" div align=center />
+
+```cpp
+VectorXd CalculateRMSE(const vector<VectorXd> &estimations,
+	const vector<VectorXd> &ground_truth) {
+
+	VectorXd rmse(4);
+	rmse << 0, 0, 0, 0;
+
+	// check the validity of the following inputs:
+	//  * the estimation vector size should not be zero
+	//  * the estimation vector size should equal ground truth vector size
+	if (estimations.size() != ground_truth.size()
+		|| estimations.size() == 0) {
+		cout << "Invalid estimation or ground_truth data" << endl;
+		return rmse;
+	}
+
+	//accumulate squared residuals
+	for (unsigned int i = 0; i < estimations.size(); ++i) {
+
+		VectorXd residual = estimations[i] - ground_truth[i];
+
+		//coefficient-wise multiplication
+		residual = residual.array()*residual.array();
+		rmse += residual;
+	}
+
+	//calculate the mean
+	rmse = rmse / estimations.size();
+
+	//calculate the squared root
+	rmse = rmse.array().sqrt();
+
+	//return the result
+	return rmse;
+}
+```
