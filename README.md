@@ -39,22 +39,7 @@ void KalmanFilter::Predict() {
 	P_ = F_ * P_ * Ft + Q_;
 ```
 
-## Measurements
-
-### Laser & Radar synthetic input (object position)
-
-```
-L	4.632272e-01	6.074152e-01	1477010443000000	6.000000e-01	6.000000e-01	2.199937e+00	0	0	6.911322e-03
-R	8.986584e-01	6.176736e-01	1.798602e+00	1477010443050000	7.099968e-01	6.000190e-01	2.199747e+00	7.601581e-04	3.455661e-04	1.382155e-02
-L	9.685213e-01	4.054501e-01	1477010443100000	8.199842e-01	6.000950e-01	2.199431e+00	2.280027e-03	1.036644e-03	2.072960e-02
-R	9.105743e-01	6.105369e-01	1.462326e+00	1477010443150000	9.299556e-01	6.002660e-01	2.198985e+00	4.558776e-03	2.073124e-03	2.763437e-02
-L	9.477518e-01	6.368242e-01	1477010443200000	1.039905e+00	6.005699e-01	2.198410e+00	7.595190e-03	3.454842e-03	3.453479e-02
-R	1.441585e+00	4.700585e-01	2.079419e+00	1477010443250000	1.149825e+00	6.010446e-01	2.197701e+00	1.138767e-02	5.181582e-03	4.142974e-02
-......
-......
-```
-
-### Laser Measurements
+## Lidar Measurements
 
 - ``z``measurement vector
 - ``x``state vector
@@ -63,24 +48,45 @@ R	1.441585e+00	4.700585e-01	2.079419e+00	1477010443250000	1.149825e+00	6.010446e
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Laser%20Measurements.png" width = "50%" height = "50%" div align=center />
 
-```cpp
-void KalmanFilter::Update(const VectorXd &z) {
-	VectorXd z_pred = H_ * x_;
-	VectorXd y = z - z_pred;
-	MatrixXd Ht = H_.transpose();
-	MatrixXd S = H_ * P_ * Ht + R_;
-	MatrixXd Si = S.inverse();
-	MatrixXd PHt = P_ * Ht;
-	MatrixXd K = PHt * Si;
+### Process Covariance Matrix
 
-	//new estimate
-	x_ = x_ + (K * y);
-	long x_size = x_.size();
-	MatrixXd I = MatrixXd::Identity(x_size, x_size);
-	P_ = (I - K * H_) * P_;
+Because our state vector only tracks position and velocity, we are **modeling acceleration as a random noise**. 
+
+pic: Process Covariance Matrix4
+
+[Details: Udacity Process Covariance Matrix](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/3612b91d-9c33-47ad-8067-a572a6c93837/concepts/1ac6e0ac-1809-4864-b58f-870d6bda9b25)
+
+### Code
+```cpp
+  // compute the time elapsed between the current and previous measurements
+  // dt - expressed in seconds
+  float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
+  previous_timestamp_ = measurement_pack.timestamp_;
+
+  float dt_2 = dt * dt;
+	float dt_3 = dt_2 * dt;
+	float dt_4 = dt_3 * dt;
+
+  // 1. Modify the F matrix so that the time is integrated
+  kf_.F_(0, 2) = dt;
+	kf_.F_(1, 3) = dt;
+
+  // 2. Set the process covariance matrix Q
+  kf_.Q_ = MatrixXd(4, 4);
+	kf_.Q_ << dt_4 / 4 * noise_ax, 0, dt_3 / 2 * noise_ax, 0,
+	          0, dt_4 / 4 * noise_ay, 0, dt_3 / 2 * noise_ay,
+	          dt_3 / 2 * noise_ax, 0, dt_2*noise_ax, 0,
+	          0, dt_3 / 2 * noise_ay, 0, dt_2*noise_ay;
+
+  // 3. Call the Kalman Filter predict() function
+  kf_.Predict();
+
+  // 4. Call the Kalman Filter update() function
+  //      with the most recent raw measurements_
+  kf_.Update(measurement_pack.raw_measurements_);
 ```
 
-#### Disadvantages
+### Disadvantages
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Disadvantages.png" width = "50%" height = "50%" div align=center />
 
@@ -90,7 +96,7 @@ However, our linear motion model is not perfect, especially for the scenarios wh
 
 To solve this problem, we can predict the state by using a more complex motion model such as the circular motion.
 
-### Radar Measurements
+## Radar Measurements
 
 The radar can directly measure the object ``range``, ``bearing``, ``radial velocity``.
 
