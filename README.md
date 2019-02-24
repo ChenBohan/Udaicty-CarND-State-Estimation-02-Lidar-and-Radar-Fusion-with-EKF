@@ -52,7 +52,13 @@ void KalmanFilter::Predict() {
 
 Because our state vector only tracks position and velocity, we are **modeling acceleration as a random noise**. 
 
-pic: Process Covariance Matrix4
+<img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix" width = "60%" height = "60%" div align=center />
+
+<img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix2.png" width = "60%" height = "60%" div align=center />
+
+<img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix3.png" width = "60%" height = "60%" div align=center />
+
+<img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix4.png" width = "60%" height = "60%" div align=center />
 
 [Details: Udacity Process Covariance Matrix](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/3612b91d-9c33-47ad-8067-a572a6c93837/concepts/1ac6e0ac-1809-4864-b58f-870d6bda9b25)
 
