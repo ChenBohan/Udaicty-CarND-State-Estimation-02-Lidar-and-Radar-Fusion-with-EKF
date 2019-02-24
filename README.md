@@ -34,9 +34,10 @@ Because our state vector only tracks position and velocity, we are modeling acce
 
 ```cpp
 void KalmanFilter::Predict() {
-	x_ = F_ * x_;
-	MatrixXd Ft = F_.transpose();
-	P_ = F_ * P_ * Ft + Q_;
+  x_ = F_ * x_;
+  MatrixXd Ft = F_.transpose();
+  P_ = F_ * P_ * Ft + Q_;
+}
 ```
 
 ## Lidar Measurements
@@ -90,6 +91,24 @@ Because our state vector only tracks position and velocity, we are **modeling ac
   // 4. Call the Kalman Filter update() function
   //      with the most recent raw measurements_
   kf_.Update(measurement_pack.raw_measurements_);
+```
+
+```cpp
+void KalmanFilter::Update(const VectorXd &z) {
+  VectorXd z_pred = H_ * x_;
+  VectorXd y = z - z_pred;
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R_;
+  MatrixXd Si = S.inverse();
+  MatrixXd PHt = P_ * Ht;
+  MatrixXd K = PHt * Si;
+
+  //new estimate
+  x_ = x_ + (K * y);
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  P_ = (I - K * H_) * P_;
+}
 ```
 
 ### Disadvantages
