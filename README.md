@@ -125,19 +125,21 @@ To solve this problem, we can predict the state by using a more complex motion m
 
 The radar can directly measure the object ``range``, ``bearing``, ``radial velocity``.
 
-We use the extended kalman filter in Radar Measurements for non-linear function.
-
-What we change is we simply use non-linear function f(x) to predict the state, and h(X) to compute the measurement error.
-
-So we first linearize the non-linear prediction and measurement functions, and then use the same mechanism to estimate the new state.
-
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Generalization.png" width = "50%" height = "50%" div align=center />
+
+For radar, there is no ``H`` matrix that will map the state vector ``x`` into polar coordinates; instead, we need to calculate the mapping manually to convert from cartesian coordinates to polar coordinates. 
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements.png" width = "50%" height = "50%" div align=center />
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements2.png" width = "50%" height = "50%" div align=center />
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements3.png" width = "30%" height = "30%" div align=center />
+
+We use the extended kalman filter in Radar Measurements for non-linear function.
+
+What we change is we simply use non-linear function f(x) to predict the state, and h(X) to compute the measurement error.
+
+So we first linearize the non-linear prediction and measurement functions, and then use the same mechanism to estimate the new state.
 
 Extended Kalman filter (EKF) is the nonlinear version of the Kalman filter which linearizes about an estimate of the current mean and covariance.
 
