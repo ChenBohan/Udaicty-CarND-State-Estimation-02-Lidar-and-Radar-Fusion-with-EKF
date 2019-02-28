@@ -145,6 +145,12 @@ Extended Kalman filter (EKF) is the nonlinear version of the Kalman filter which
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Extended%20Kalman%20Filter.png" width = "50%" height = "50%" div align=center />
 
+To derive a linear approximation for the h function, we will only keep the expansion up to the **Jacobian matrix Df(a)**. 
+
+We will **ignore the Hessian matrix D^2f(a) and other higher order terms**. 
+
+Assuming (x - a) is small, (x - a)^2 or the multi-dimensional equivalent will be even smaller;
+
 Calculate the Jacobian matrix
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Jacobian%20Matrix.png" width = "50%" height = "50%" div align=center />
