@@ -123,6 +123,38 @@ To solve this problem, we can predict the state by using a more complex motion m
 
 ## Radar Measurements
 
+### Overview
+
+#### Difference
+
+The main differences betweem EKF and KF are:
+- the ``F`` matrix will be replaced by ``F_j`` when calculating ``P'.
+- the ``H`` matrix in the Kalman filter will be replaced by the Jacobian matrix ``H_j`` when calculating ``S``, ``K``, and ``P``.
+- to calculate ``x'``, the prediction update function, ``f``, is used instead of the ``F`` matrix.
+- to calculate ``y``, the hhh function is used instead of the ``H`` matrix.
+
+In the radar update step, the Jacobian matrix ``H_j`` is used to calculate ``S``, ``K`` and ``P``. 
+
+To calculate ``y``, we use the equations that map the predicted location ``x'`` from Cartesian coordinates to polar coordinates
+
+The radar sensor will output values in polar coordinates.
+
+In order to calculate yyy for the radar sensor, we need to convert x′x'x′ to polar coordinates.
+
+
+
+#### Predict
+
+We are still using a linear model for the prediction step. 
+
+So, for the prediction step, we can still use the regular Kalman filter equations and the F matrix rather than the extended Kalman filter equations. 
+
+#### Measurement
+
+The measurement update for the radar sensor will use the extended Kalman filter equations.
+
+### Calculations
+
 The radar can directly measure the object ``range``, ``bearing``, ``radial velocity``.
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Generalization.png" width = "50%" height = "50%" div align=center />
