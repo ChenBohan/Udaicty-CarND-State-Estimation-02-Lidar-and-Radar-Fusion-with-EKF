@@ -34,9 +34,10 @@ Because our state vector only tracks position and velocity, we are modeling acce
 
 ```cpp
 void KalmanFilter::Predict() {
-	x_ = F_ * x_;
-	MatrixXd Ft = F_.transpose();
-	P_ = F_ * P_ * Ft + Q_;
+  x_ = F_ * x_;
+  MatrixXd Ft = F_.transpose();
+  P_ = F_ * P_ * Ft + Q_;
+}
 ```
 
 ## Lidar Measurements
@@ -52,7 +53,13 @@ void KalmanFilter::Predict() {
 
 Because our state vector only tracks position and velocity, we are **modeling acceleration as a random noise**. 
 
-pic: Process Covariance Matrix4
+<img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix" width = "60%" height = "60%" div align=center />
+
+<img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix2.png" width = "60%" height = "60%" div align=center />
+
+<img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix3.png" width = "60%" height = "60%" div align=center />
+
+<img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix4.png" width = "60%" height = "60%" div align=center />
 
 [Details: Udacity Process Covariance Matrix](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/3612b91d-9c33-47ad-8067-a572a6c93837/concepts/1ac6e0ac-1809-4864-b58f-870d6bda9b25)
 
@@ -86,6 +93,24 @@ pic: Process Covariance Matrix4
   kf_.Update(measurement_pack.raw_measurements_);
 ```
 
+```cpp
+void KalmanFilter::Update(const VectorXd &z) {
+  VectorXd z_pred = H_ * x_;
+  VectorXd y = z - z_pred;
+  MatrixXd Ht = H_.transpose();
+  MatrixXd S = H_ * P_ * Ht + R_;
+  MatrixXd Si = S.inverse();
+  MatrixXd PHt = P_ * Ht;
+  MatrixXd K = PHt * Si;
+
+  //new estimate
+  x_ = x_ + (K * y);
+  long x_size = x_.size();
+  MatrixXd I = MatrixXd::Identity(x_size, x_size);
+  P_ = (I - K * H_) * P_;
+}
+```
+
 ### Disadvantages
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Disadvantages.png" width = "50%" height = "50%" div align=center />
@@ -98,15 +123,43 @@ To solve this problem, we can predict the state by using a more complex motion m
 
 ## Radar Measurements
 
+### Overview
+
+#### Difference
+
+The main differences betweem EKF and KF are:
+- the ``F`` matrix will be replaced by ``F_j`` when calculating ``P'.
+- the ``H`` matrix in the Kalman filter will be replaced by the Jacobian matrix ``H_j`` when calculating ``S``, ``K``, and ``P``.
+- to calculate ``x'``, the prediction update function, ``f``, is used instead of the ``F`` matrix.
+- to calculate ``y``, the hhh function is used instead of the ``H`` matrix.
+
+In the radar update step, the Jacobian matrix ``H_j`` is used to calculate ``S``, ``K`` and ``P``. 
+
+To calculate ``y``, we use the equations that map the predicted location ``x'`` from Cartesian coordinates to polar coordinates
+
+The radar sensor will output values in polar coordinates.
+
+In order to calculate yyy for the radar sensor, we need to convert x′x'x′ to polar coordinates.
+
+
+
+#### Predict
+
+We are still using a linear model for the prediction step. 
+
+So, for the prediction step, we can still use the regular Kalman filter equations and the F matrix rather than the extended Kalman filter equations. 
+
+#### Measurement
+
+The measurement update for the radar sensor will use the extended Kalman filter equations.
+
+### Calculations
+
 The radar can directly measure the object ``range``, ``bearing``, ``radial velocity``.
 
-We use the extended kalman filter in Radar Measurements for non-linear function.
-
-What we change is we simply use non-linear function f(x) to predict the state, and h(X) to compute the measurement error.
-
-So we first linearize the non-linear prediction and measurement functions, and then use the same mechanism to estimate the new state.
-
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Generalization.png" width = "50%" height = "50%" div align=center />
+
+For radar, there is no ``H`` matrix that will map the state vector ``x`` into polar coordinates; instead, we need to calculate the mapping manually to convert from cartesian coordinates to polar coordinates. 
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements.png" width = "50%" height = "50%" div align=center />
 
@@ -114,30 +167,55 @@ So we first linearize the non-linear prediction and measurement functions, and t
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements3.png" width = "30%" height = "30%" div align=center />
 
+We use the extended kalman filter in Radar Measurements for non-linear function.
+
+What we change is we simply use non-linear function f(x) to predict the state, and h(X) to compute the measurement error.
+
+So we first linearize the non-linear prediction and measurement functions, and then use the same mechanism to estimate the new state.
+
 Extended Kalman filter (EKF) is the nonlinear version of the Kalman filter which linearizes about an estimate of the current mean and covariance.
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Extended%20Kalman%20Filter.png" width = "50%" height = "50%" div align=center />
 
-Calculate the Jacobian matrix
+To derive a linear approximation for the h function, we will only keep the expansion up to the **Jacobian matrix Df(a)**. 
+
+We will **ignore the Hessian matrix D^2f(a) and other higher order terms**. 
+
+Assuming (x - a) is small, (x - a)^2 or the multi-dimensional equivalent will be even smaller;
+
+[Details: Calculate the Jacobian matrix](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/3612b91d-9c33-47ad-8067-a572a6c93837/concepts/ad446f45-d757-41b0-be5d-3f0a28d3dfd1)
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Jacobian%20Matrix.png" width = "50%" height = "50%" div align=center />
 
+### Code
 ```cpp
-//pre-compute a set of terms to avoid repeated calculation
-float c1 = px*px+py*py;
-float c2 = sqrt(c1);
-float c3 = (c1*c2);
+MatrixXd CalculateJacobian(const VectorXd& x_state) {
 
-//check division by zero
-if(fabs(c1) < 0.0001){
-	cout << "CalculateJacobian () - Error - Division by Zero" << endl;
-	return Hj;
+  MatrixXd Hj(3,4);
+  // recover state parameters
+  float px = x_state(0);
+  float py = x_state(1);
+  float vx = x_state(2);
+  float vy = x_state(3);
+
+  // pre-compute a set of terms to avoid repeated calculation
+  float c1 = px*px+py*py;
+  float c2 = sqrt(c1);
+  float c3 = (c1*c2);
+
+  // check division by zero
+  if (fabs(c1) < 0.0001) {
+    cout << "CalculateJacobian () - Error - Division by Zero" << endl;
+    return Hj;
+  }
+
+  // compute the Jacobian matrix
+  Hj << (px/c2), (py/c2), 0, 0,
+      -(py/c1), (px/c1), 0, 0,
+      py*(vx*py - vy*px)/c3, px*(px*vy - py*vx)/c3, px/c2, py/c2;
+
+  return Hj;
 }
-
-//compute the Jacobian matrix
-Hj << (px/c2), (py/c2), 0, 0,
-	-(py/c1), (px/c1), 0, 0,
-	py*(vx*py - vy*px)/c3, px*(px*vy - py*vx)/c3, px/c2, py/c2;
 ```
 
 ## Evaluating KF Performance
