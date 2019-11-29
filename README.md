@@ -14,7 +14,7 @@ The Kalman Filter algorithm will go through the following steps:
 - Update.
 - Do another predict and update step (when receive another sensor measurement).
 
-<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Overview%20of%20the%20Kalman%20Filter%20Algorithm%20Map.png" width = "70%" height = "70%" div align=center />
+<img src="https://github.com/ChenBohan/CarND-13-Localization-Bayes-Markov-Localization/blob/master/readme_img/06-l-apply-bayes-rule-with-additional-conditions.00-02-12-10.still004.png" width = "70%" height = "70%" div align=center />
 
 ## Two-step estimation problem
 
