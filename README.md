@@ -1,4 +1,4 @@
-# CarND-11-Sensor-Fusion-Lidar-and-Radar-Fusion-with-Kalman-Filters
+# Udaicty-CarND-State-Estimation-02-Lidar-and-Radar-Fusion-with-Kalman-Filters
 
 Udacity Self-Driving Car Engineer Nanodegree:  Lidar and Radar Fusion with Kalman Filters in C++.
 
