@@ -42,16 +42,27 @@ void KalmanFilter::Predict() {
 
 ## Lidar Measurements
 
-- ``z``measurement vector
 - ``x``state vector
-- ``R``measurement covariance matrix
-- ``H``measurement matrix: Find the right H matrix to project from a 4D state to a 2D observation space.
-
+- ``z``measurement vector
+	- For a lidar sensor, the `z` vector contains the `position−x` and `position-y` measurements.
+- ``H``measurement matrix
+	- H is the matrix that projects your belief about the object's current state into the measurement space of the sensor.
+	- For lidar, this is a fancy way of saying that we discard velocity information from the state variable since the lidar sensor only measures position
+	- Find the right H matrix to project from a 4D state to a 2D observation space.
+	```cpp
+	kf_.H_ = MatrixXd(2, 4);
+	kf_.H_ << 1, 0, 0, 0,
+			  0, 1, 0, 0;
+    ```
+- ``R``Measurement Noise Covariance Matrix 
+	- Because our state vector only tracks position and velocity, we are modeling acceleration as a random noise.
+	- Generally, the parameters for the random noise measurement matrix will be **provided by the sensor manufacturer**.
+	```cpp
+	kf_.R_ = MatrixXd(2, 2);
+	kf_.R_ << 0.0225, 0,
+              0, 0.0225;
+	```
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Laser%20Measurements.png" width = "50%" height = "50%" div align=center />
-
-### Process Covariance Matrix
-
-Because our state vector only tracks position and velocity, we are **modeling acceleration as a random noise**. 
 
 <img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix" width = "60%" height = "60%" div align=center />
 
@@ -65,32 +76,31 @@ Because our state vector only tracks position and velocity, we are **modeling ac
 
 ### Code
 ```cpp
-  // compute the time elapsed between the current and previous measurements
-  // dt - expressed in seconds
-  float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
-  previous_timestamp_ = measurement_pack.timestamp_;
+	// compute the time elapsed between the current and previous measurements
+	// dt - expressed in seconds
+	float dt = (measurement_pack.timestamp_ - previous_timestamp_) / 1000000.0;
+	previous_timestamp_ = measurement_pack.timestamp_;
 
-  float dt_2 = dt * dt;
+	float dt_2 = dt * dt;
 	float dt_3 = dt_2 * dt;
 	float dt_4 = dt_3 * dt;
 
-  // 1. Modify the F matrix so that the time is integrated
-  kf_.F_(0, 2) = dt;
+	// 1. Update state transition matrix F, so that the time is integrated
+	kf_.F_(0, 2) = dt;
 	kf_.F_(1, 3) = dt;
 
-  // 2. Set the process covariance matrix Q
-  kf_.Q_ = MatrixXd(4, 4);
+	// 2. Update process covariance matrix Q based on new elapesd time
+	kf_.Q_ = MatrixXd(4, 4);
 	kf_.Q_ << dt_4 / 4 * noise_ax, 0, dt_3 / 2 * noise_ax, 0,
-	          0, dt_4 / 4 * noise_ay, 0, dt_3 / 2 * noise_ay,
-	          dt_3 / 2 * noise_ax, 0, dt_2*noise_ax, 0,
-	          0, dt_3 / 2 * noise_ay, 0, dt_2*noise_ay;
+		      0, dt_4 / 4 * noise_ay, 0, dt_3 / 2 * noise_ay,
+		      dt_3 / 2 * noise_ax, 0, dt_2*noise_ax, 0,
+		      0, dt_3 / 2 * noise_ay, 0, dt_2*noise_ay;
 
-  // 3. Call the Kalman Filter predict() function
-  kf_.Predict();
+	// 3. Call the Kalman Filter predict() function
+	kf_.Predict();
 
-  // 4. Call the Kalman Filter update() function
-  //      with the most recent raw measurements_
-  kf_.Update(measurement_pack.raw_measurements_);
+	// 4. Call the Kalman Filter update() function with the most recent raw measurements_
+	kf_.Update(measurement_pack.raw_measurements_);
 ```
 
 ```cpp
