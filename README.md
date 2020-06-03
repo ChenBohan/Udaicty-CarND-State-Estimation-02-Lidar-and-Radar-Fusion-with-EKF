@@ -136,9 +136,13 @@ void KalmanFilter::Update(const VectorXd &z) {
 
 ## Radar Measurements
 
-### Overview
+### State matrix
 
-#### Difference
+- `h`
+	- the `h` function that specifies how the predicted position and speed get mapped to the polar coordinates of range, bearing and range rate.
+
+
+### Difference
 
 The main differences betweem EKF and KF are:
 - the ``F`` matrix will be replaced by ``F_j`` when calculating ``P'.
