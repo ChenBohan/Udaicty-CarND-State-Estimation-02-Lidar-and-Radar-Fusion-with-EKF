@@ -42,6 +42,8 @@ void KalmanFilter::Predict() {
 
 ## Lidar Measurements
 
+### Matrix
+
 - ``x``state vector
 - ``z``measurement vector
 	- For a lidar sensor, the `z` vector contains the `position−x` and `position-y` measurements.
@@ -62,6 +64,9 @@ void KalmanFilter::Predict() {
 	kf_.R_ << 0.0225, 0,
               0, 0.0225;
 	```
+
+### Some pic
+
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Laser%20Measurements.png" width = "50%" height = "50%" div align=center />
 
 <img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix" width = "60%" height = "60%" div align=center />
@@ -71,8 +76,6 @@ void KalmanFilter::Predict() {
 <img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix3.png" width = "60%" height = "60%" div align=center />
 
 <img src="https://github.com/ChenBohan/Robotics-Sensor-Fusion-02-EKF-Lidar-and-Radar-Fusion/blob/master/readme_img/Process%20Covariance%20Matrix4.png" width = "60%" height = "60%" div align=center />
-
-[Details: Udacity Process Covariance Matrix](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/3612b91d-9c33-47ad-8067-a572a6c93837/concepts/1ac6e0ac-1809-4864-b58f-870d6bda9b25)
 
 ### Code
 ```cpp
@@ -125,11 +128,11 @@ void KalmanFilter::Update(const VectorXd &z) {
 
 <img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Disadvantages.png" width = "50%" height = "50%" div align=center />
 
-It works quite well when the pedestrian is moving along the straght line.
+- It works quite well when the pedestrian is moving along the straght line.
 
-However, our linear motion model is not perfect, especially for the scenarios when the pedestrian is moving along a circular path.
+- However, our linear motion model is not perfect, especially for the scenarios when the pedestrian is moving along a circular path.
 
-To solve this problem, we can predict the state by using a more complex motion model such as the circular motion.
+- To solve this problem, we can predict the state by **using a more complex motion model** such as the circular motion.
 
 ## Radar Measurements
 
