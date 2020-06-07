@@ -136,11 +136,17 @@ void KalmanFilter::Update(const VectorXd &z) {
 
 ## Radar Measurements
 
-### State matrix
+### Matrix
 
 - `h`
-	- the `h` function that specifies how the predicted position and speed get mapped to the polar coordinates of range, bearing and range rate.
+	- `h` function that specifies how the predicted position and speed get mapped to the polar coordinates of range, bearing and range rate.
+	- `h` non-linear -> KF update formula cannot be apply -> linearize `h` -> EKF
 
+### EKF
+- linearization
+	- firsr order taylor expansion
+		- 1. evaluate the nonlinear function at the mean location `mu` (best estimation)
+		- 2. extropulate the line with slope (first derivation) around `mu`
 
 ### Difference
 
