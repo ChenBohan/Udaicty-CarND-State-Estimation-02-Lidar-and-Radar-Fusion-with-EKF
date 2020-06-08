@@ -126,7 +126,7 @@ void KalmanFilter::Update(const VectorXd &z) {
 
 ### Disadvantages
 
-<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Disadvantages.png" width = "50%" height = "50%" div align=center />
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Disadvantages.png" width = "70%" height = "70%" div align=center />
 
 - It works quite well when the pedestrian is moving along the straght line.
 
@@ -142,75 +142,13 @@ void KalmanFilter::Update(const VectorXd &z) {
 	- `h` function that specifies how the predicted position and speed get mapped to the polar coordinates of range, bearing and range rate.
 	- `h` non-linear -> KF update formula cannot be apply -> linearize `h` -> EKF
 
-### EKF
-- linearization
-	- firsr order taylor expansion
-		- 1. evaluate the nonlinear function at the mean location `mu` (best estimation)
-		- 2. extropulate the line with slope (first derivation) around `mu`
+### linearization
+- firsr order taylor expansion
+	- 1. evaluate the nonlinear function at the mean location `mu` (best estimation)
+	- 2. extropulate the line with slope (first derivation) around `mu`
 
-### Difference
+### Calculate Jacobian
 
-The main differences betweem EKF and KF are:
-- the ``F`` matrix will be replaced by ``F_j`` when calculating ``P'.
-- the ``H`` matrix in the Kalman filter will be replaced by the Jacobian matrix ``H_j`` when calculating ``S``, ``K``, and ``P``.
-- to calculate ``x'``, the prediction update function, ``f``, is used instead of the ``F`` matrix.
-- to calculate ``y``, the hhh function is used instead of the ``H`` matrix.
-
-In the radar update step, the Jacobian matrix ``H_j`` is used to calculate ``S``, ``K`` and ``P``. 
-
-To calculate ``y``, we use the equations that map the predicted location ``x'`` from Cartesian coordinates to polar coordinates
-
-The radar sensor will output values in polar coordinates.
-
-In order to calculate yyy for the radar sensor, we need to convert x′x'x′ to polar coordinates.
-
-
-
-#### Predict
-
-We are still using a linear model for the prediction step. 
-
-So, for the prediction step, we can still use the regular Kalman filter equations and the F matrix rather than the extended Kalman filter equations. 
-
-#### Measurement
-
-The measurement update for the radar sensor will use the extended Kalman filter equations.
-
-### Calculations
-
-The radar can directly measure the object ``range``, ``bearing``, ``radial velocity``.
-
-<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Generalization.png" width = "50%" height = "50%" div align=center />
-
-For radar, there is no ``H`` matrix that will map the state vector ``x`` into polar coordinates; instead, we need to calculate the mapping manually to convert from cartesian coordinates to polar coordinates. 
-
-<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements.png" width = "50%" height = "50%" div align=center />
-
-<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements2.png" width = "50%" height = "50%" div align=center />
-
-<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements3.png" width = "30%" height = "30%" div align=center />
-
-We use the extended kalman filter in Radar Measurements for non-linear function.
-
-What we change is we simply use non-linear function f(x) to predict the state, and h(X) to compute the measurement error.
-
-So we first linearize the non-linear prediction and measurement functions, and then use the same mechanism to estimate the new state.
-
-Extended Kalman filter (EKF) is the nonlinear version of the Kalman filter which linearizes about an estimate of the current mean and covariance.
-
-<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Extended%20Kalman%20Filter.png" width = "50%" height = "50%" div align=center />
-
-To derive a linear approximation for the h function, we will only keep the expansion up to the **Jacobian matrix Df(a)**. 
-
-We will **ignore the Hessian matrix D^2f(a) and other higher order terms**. 
-
-Assuming (x - a) is small, (x - a)^2 or the multi-dimensional equivalent will be even smaller;
-
-[Details: Calculate the Jacobian matrix](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/3612b91d-9c33-47ad-8067-a572a6c93837/concepts/ad446f45-d757-41b0-be5d-3f0a28d3dfd1)
-
-<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Jacobian%20Matrix.png" width = "50%" height = "50%" div align=center />
-
-### Code
 ```cpp
 MatrixXd CalculateJacobian(const VectorXd& x_state) {
 
@@ -240,6 +178,45 @@ MatrixXd CalculateJacobian(const VectorXd& x_state) {
   return Hj;
 }
 ```
+
+[Details: Calculate the Jacobian matrix](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/3612b91d-9c33-47ad-8067-a572a6c93837/concepts/ad446f45-d757-41b0-be5d-3f0a28d3dfd1)
+
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Jacobian%20Matrix.png" width = "50%" height = "50%" div align=center />
+
+### EKF Algorithm Generalization
+
+1. linearize the nonlinear prediction and measurement function
+2. use the same mechanism to estimate the new state
+
+The main differences betweem EKF and KF are:
+- the ``F`` matrix will be replaced by ``F_j`` when calculating ``P'.
+- the ``H`` matrix in the Kalman filter will be replaced by the Jacobian matrix ``H_j`` when calculating ``S``, ``K``, and ``P``.
+- to calculate ``x'``, the prediction update function, ``f``, is used instead of the ``F`` matrix.
+- to calculate ``y``, the `h` function is used instead of the ``H`` matrix.
+- Because the linearization point change, we have to recalculate these matrix every loop.
+
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Generalization.png" width = "70%" height = "70%" div align=center />
+
+
+### EKF in this project
+
+- prediction update
+	- For this project, we are using a linear model for the prediction step, so we do not need to use the `f` function or `F_j`. 
+	- If we had been using a non-linear model in the prediction step, we would need to replace the `F` matrix with its Jacobian, `F_j`.
+- measurement update
+	- The measurement update for lidar will also use the regular Kalman filter equations, since lidar uses linear equations. 	
+	- Only the measurement update for the radar sensor will use the extended Kalman filter equations.
+
+### Some pic
+
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements.png" width = "60%" height = "60%" div align=center />
+
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements2.png" width = "60%" height = "60%" div align=center />
+
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Radar%20Measurements3.png" width = "60%" height = "60%" div align=center />
+
+<img src="https://github.com/ChenBohan/Auto-Car-Sensor-Fusion-02-Lidar-and-Radar-Fusion/blob/master/readme_img/Extended%20Kalman%20Filter.png" width = "60%" height = "60%" div align=center />
+
 
 ## Evaluating KF Performance
 
